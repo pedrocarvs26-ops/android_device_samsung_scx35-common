@@ -12,6 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Three init scripts installed by PRODUCT_COPY_FILES land on paths that a
+# module in PRODUCT_PACKAGES also installs through init_rc / LOCAL_INIT_RC:
+#
+#   vendor/etc/init/android.hardware.media.omx@1.0-service.rc
+#   vendor/etc/init/android.hardware.sensors@1.0-service.rc
+#   system/etc/init/mediaserver.rc
+#
+# Each local copy exists for a reason - the sensors HAL needs the input
+# group, mediaserver needs graphics, and the OMX service is renamed and
+# given the audio group - so none of them can simply be dropped.  Kati
+# treats two rules for one output as an error unless this is set; with it,
+# it warns and the later rule wins, and PRODUCT_COPY_FILES is evaluated
+# after base_rules.mk, so the local copies are the ones installed.
+#
+# The tidy fix is to install each under its own file name and let init's
+# "override" keyword replace the upstream service, which needs the file to
+# sort after the original in the same directory.  Until then, keep the
+# behaviour this tree has always shipped.
+BUILD_BROKEN_DUP_RULES := true
+
 # SPRD hardware
 BOARD_USES_SPRD_HARDWARE := true
 
