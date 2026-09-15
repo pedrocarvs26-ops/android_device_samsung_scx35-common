@@ -389,7 +389,7 @@ on boot
 
 # permissions for bluetooth.
    setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
-   chown bluetooth net_bt_stack ro.bt.bdaddr_path
+   chown bluetooth bluetooth /efs/bluetooth/bt_addr
    symlink /system/etc/bluetooth /etc/bluetooth
    mkdir /efs/bluetooth 0775 radio system
    mkdir /data/misc 01771 system misc

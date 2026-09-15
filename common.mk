@@ -38,9 +38,6 @@ PRODUCT_PACKAGES += \
 	bluetooth.default \
 	libbt-vendor
 
-PRODUCT_COPY_FILES += \
-	$(LOCAL_PATH)/system/etc/init/android.hardware.bluetooth@1.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/android.hardware.bluetooth@1.0-service.rc \
-
 # Codecs
 PRODUCT_PACKAGES += \
 	libcolorformat_switcher \
