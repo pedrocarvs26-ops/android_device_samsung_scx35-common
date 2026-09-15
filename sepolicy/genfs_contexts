@@ -3,3 +3,9 @@ genfscon proc /cpw u:object_r:proc_cpw:s0
 genfscon proc /cpt u:object_r:proc_cpt:s0
 genfscon sysfs /devices/system/cpu/cpuhotplug/cpu_num_min_limit u:object_r:sysfs_sprd_cpuhotplug:s0
 genfscon sysfs /power/gpufreq_min_limit u:object_r:sysfs_sprd_gpufreq:s0
+
+# Broadcom Bluetooth: libbt-vendor toggles the chip through rfkill and
+# drives the low power mode handshake through the bluesleep interface.
+genfscon proc /bluetooth u:object_r:proc_bluetooth_writable:s0
+genfscon sysfs /devices/bcm-bt-rfkill u:object_r:sysfs_bluetooth_writable:s0
+genfscon sysfs /devices/platform/bcm-bt-rfkill u:object_r:sysfs_bluetooth_writable:s0
