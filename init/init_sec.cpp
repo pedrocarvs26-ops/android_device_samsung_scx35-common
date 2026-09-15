@@ -27,9 +27,12 @@
 
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <string>
 
 #include <android-base/properties.h>
 #include "vendor_init.h"
@@ -180,6 +183,56 @@ static void set_radio_properties(device_variant variant)
 	}
 }
 
+/*
+ * The Broadcom controller holds no address of its own: the factory writes it to
+ * /efs/bluetooth/bt_addr, which ro.bt.bdaddr_path points at.  When that file is
+ * missing, BluetoothAddress::get_local_address() returns false and
+ * android.hardware.bluetooth@1.0-service aborts on
+ *
+ *     LOG_ALWAYS_FATAL("Open: No Bluetooth Address!")
+ *
+ * taking Bluetooth down for good, in a restart loop.  Publish a fallback derived
+ * from the serial number so the adapter still comes up on units whose factory
+ * partition was wiped or fails to mount.
+ *
+ * The HAL reads the factory file first and only then ro.boot.btmacaddr, so a real
+ * address always wins over this one.  The first octet is 0x02: unicast with the
+ * locally administered bit set, which is the range reserved for exactly this.
+ */
+static void set_bluetooth_address_fallback()
+{
+	/* Never shadow an address the bootloader was kind enough to pass in. */
+	if (!GetProperty("ro.boot.btmacaddr", "").empty())
+		return;
+
+	std::string serial = GetProperty("ro.serialno", "");
+
+	if (serial.empty())
+		serial = GetProperty("ro.boot.serialno", "");
+
+	if (serial.empty())
+		return;
+
+	/* FNV-1a, 64 bit. */
+	uint64_t hash = 0xcbf29ce484222325ULL;
+
+	for (unsigned char c : serial) {
+		hash ^= c;
+		hash *= 0x100000001b3ULL;
+	}
+
+	char address[18];
+
+	snprintf(address, sizeof(address), "02:%02x:%02x:%02x:%02x:%02x",
+		 (unsigned int)((hash >> 32) & 0xff),
+		 (unsigned int)((hash >> 24) & 0xff),
+		 (unsigned int)((hash >> 16) & 0xff),
+		 (unsigned int)((hash >> 8) & 0xff),
+		 (unsigned int)(hash & 0xff));
+
+	property_override("ro.boot.btmacaddr", address);
+}
+
 void vendor_load_properties()
 {
 
@@ -256,4 +309,5 @@ void vendor_load_properties()
 	}
 
 	set_radio_properties(variant);
+	set_bluetooth_address_fallback();
 }
