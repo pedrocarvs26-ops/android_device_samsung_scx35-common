@@ -151,6 +151,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	pm.dexopt.inactive=verify \
 	pm.dexopt.shared=quicken
 
+# Compile the boot image and system server ahead of time.  Interpreting them
+# is far too slow on a single-core-class SC7730SE, and the RAM saved by
+# quickening does not pay for the jank.
+PRODUCT_DEX_PREOPT_BOOT_FLAGS += --compiler-filter=speed
+PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed
+
 # HIDL (HAL Interface Definition Language)
 include $(LOCAL_PATH)/hidl.mk
 
