@@ -1,4 +1,5 @@
-service mediacodec /vendor/bin/hw/android.hardware.media.omx@1.0-service
+# gtel3g: rename to avoid collision with AOSP media.codec service
+service vendor.media_omx /vendor/bin/hw/android.hardware.media.omx@1.0-service
     class main
     user mediacodec
     group audio camera drmrpc mediadrm

@@ -27,14 +27,16 @@
 
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
+
 #include <android-base/properties.h>
 #include "vendor_init.h"
 #include "property_service.h"
-#include "log.h"
 
 using namespace android::base;
 
@@ -180,6 +182,32 @@ static void set_radio_properties(device_variant variant)
 	}
 }
 
+/* 18.1 port: BT HAL aborts without /efs/bluetooth/bt_addr; publish a
+ * stable fallback derived from the serial number (factory file wins). */
+static void set_bluetooth_address_fallback()
+{
+	if (!GetProperty("ro.boot.btmacaddr", "").empty())
+		return;
+	std::string serial = GetProperty("ro.serialno", "");
+	if (serial.empty())
+		serial = GetProperty("ro.boot.serialno", "");
+	if (serial.empty())
+		return;
+	uint64_t hash = 0xcbf29ce484222325ULL;
+	for (unsigned char c : serial) {
+		hash ^= c;
+		hash *= 0x100000001b3ULL;
+	}
+	char address[18];
+	snprintf(address, sizeof(address), "02:%02x:%02x:%02x:%02x:%02x",
+		 (unsigned int)((hash >> 32) & 0xff),
+		 (unsigned int)((hash >> 24) & 0xff),
+		 (unsigned int)((hash >> 16) & 0xff),
+		 (unsigned int)((hash >> 8) & 0xff),
+		 (unsigned int)(hash & 0xff));
+	property_override("ro.boot.btmacaddr", address);
+}
+
 void vendor_load_properties()
 {
 
@@ -242,9 +270,9 @@ void vendor_load_properties()
 			property_override("ro.product.device", "goyave3g");
 			break;
 		case T560:
-			/* gtelwifi */
+			/* 18.1 port: T560 has no own tree; keep the compiled product. */
 			property_override("ro.product.model", "SM-T560");
-			property_override("ro.product.device", "gtelwifi");
+			property_override("ro.product.device", "gtel3g");
 			break;
 		case T561:
 			/* gtel3g */
@@ -256,4 +284,5 @@ void vendor_load_properties()
 	}
 
 	set_radio_properties(variant);
+	set_bluetooth_address_fallback();
 }

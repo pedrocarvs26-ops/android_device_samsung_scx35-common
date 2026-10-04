@@ -1,16 +1,23 @@
 import /init.board.rc
 import /init.sc8830.usb.rc
 import /init.wifi.rc
-import /swap.rc
+import /vendor/etc/init/swap.rc
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug
 
     # set core dump resource limit
-    setrlimit 4 2147483647 2147483647
+    # Resource 4 is RLIMIT_CORE.  Samsung raised it to 2 GB for init and
+    # therefore for every process on the device, which is what allowed the
+    # core_pattern trap described below to fire at all.  Android never wants
+    # core dumps -- it uses tombstones -- so restore the kernel default of
+    # soft 0 / hard unlimited.
+    setrlimit 4 0 unlimited
 
     # coredump file will not be generated in release version
-    write /proc/sys/kernel/core_pattern /dev/null
+    # Never point core_pattern at /dev/null.  fs/coredump.c on this kernel unlinks
+    # the existing file before opening it, which replaces /dev/null with a regular file!
+    write /proc/sys/kernel/core_pattern /data/core/%p-%e.core
 
 	chown system system /sys/devices/platform/panel/backlight/panel/brightness
     chown system system /sys/class/input/event0/device/device/enable
@@ -63,18 +70,25 @@ on fs
 on charger
 	write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "powersave"
 
-service charger /sbin/sprd_charger
+service charger /system/bin/sprd_charger
     class charger
     group log
     critical
     seclabel u:r:healthd:s0
 
 on post-fs
-    # Legacy SPRD composer asks for binderized allocator synchronously.
-    # Start allocator first and hold init briefly before composer/class-hal.
-    start vendor.gralloc-2-0
-    exec -- /system/bin/sleep 2
-    start vendor.hwcomposer-2-1
+    restorecon /dev/null
+    chmod 0666 /dev/null
+    chown system system /data
+    chmod 0771 /data
+    mkdir /data/dalvik-cache 0771 root root
+    mkdir /data/dalvik-cache/arm 0711 root root
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/credstore 0700 credstore credstore
+    mkdir /data/misc/vold 0700 root root
+    mkdir /data/resource-cache 0771 system system
+    mkdir /data/system 0775 system system
+    mkdir /data/tombstones 0771 system system
     chown system system /productinfo
     chmod 0771 /productinfo
 
@@ -367,9 +381,8 @@ on boot
     mkdir /persdata 0755 system system
     mkdir /persdata/absolute 0750 system system
 
-    wait /dev/block/platform/sdio_emmc/by-name/persdata
-    check_fs /dev/block/platform/sdio_emmc/by-name/persdata ext4
-    mount ext4 /dev/block/platform/sdio_emmc/by-name/persdata /persdata/absolute nosuid nodev barrier=1
+    wait /dev/block/platform/sprd-sdhci.3/by-name/persdata 1
+    mount ext4 /dev/block/platform/sprd-sdhci.3/by-name/persdata /persdata/absolute nosuid nodev barrier=1
 
     chown system system /persdata
     chmod 0755 /persdata 
@@ -389,7 +402,7 @@ on boot
 
 # permissions for bluetooth.
    setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
-   chown bluetooth net_bt_stack ro.bt.bdaddr_path
+   chown bluetooth bluetooth /efs/bluetooth/bt_addr
    symlink /system/etc/bluetooth /etc/bluetooth
    mkdir /efs/bluetooth 0775 radio system
    mkdir /data/misc 01771 system misc
@@ -440,3 +453,7 @@ on property:ro.config.ksm.support=true
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/cp1_iis0
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/cp2_iis0
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/ap_iis0
+
+# Recover from a SurfaceFlinger crash instead of staying black until reboot.
+on property:init.svc.surfaceflinger=restarting
+    restart vendor.hwcomposer-2-1

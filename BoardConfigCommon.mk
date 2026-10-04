@@ -44,16 +44,16 @@ USE_SPRD_HWCOMPOSER := true
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 
-# HIDL
-DEVICE_MANIFEST_FILE := device/samsung/scx35-common/configs/manifest.xml
-
 # Kernel
 BOARD_CUSTOM_BOOTIMG_MK := device/samsung/scx35-common/mkbootimg.mk
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_TAGS_OFFSET := 0x01d88000
 BOARD_RAMDISK_OFFSET := 0x01000000
 BOARD_KERNEL_PAGESIZE := 2048
-BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000
+# 18.1 port: the OTA tools repack boot.img from these args alone. Every boot
+# image known to start on this board carries the tags offset below; without
+# it the repacked image falls back to 0x100.
+BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset $(BOARD_RAMDISK_OFFSET) --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_KERNEL_IMAGE_NAME := zImage
 TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-eabi-
@@ -75,8 +75,7 @@ TARGET_INIT_VENDOR_LIB := libinit_sec
 # GPS
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/scx35-common/include
 
-# healthd
-BOARD_HAL_STATIC_LIBRARIES := libhealthd.sc8830
+# healthd: BOARD_HAL_STATIC_LIBRARIES is obsolete since R; dropped (18.1 port)
 
 # Charger
 BOARD_CHARGER_ENABLE_SUSPEND := false
@@ -85,8 +84,15 @@ BACKLIGHT_PATH := /sys/class/backlight/panel/brightness
 # Enable dex-preoptimization to speed up first boot sequence
 WITH_DEXPREOPT := true
 WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := false
-PRODUCT_DEX_PREOPT_BOOT_FLAGS += --compiler-filter=speed
-PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed
+
+# 18.1 port: seven outputs are claimed by both a module rule and a
+# PRODUCT_COPY_FILES rule (init_rc/LOCAL_INIT_RC/BUILD_PREBUILT vs copy).
+# Keep the historical behavior: the copy wins.
+BUILD_BROKEN_DUP_RULES := true
+
+# 18.1 port: pre-Treble HALs (camera HAL1 in cameraserver, radio nodes
+# in audioserver/mediaserver) trip upstream neverallows; board boots permissive.
+SELINUX_IGNORE_NEVERALLOWS := true
 
 # SELinux policy
 BOARD_SEPOLICY_DIRS += device/samsung/scx35-common/sepolicy

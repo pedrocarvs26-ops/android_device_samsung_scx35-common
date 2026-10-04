@@ -9,6 +9,7 @@ on boot
 
 service gpsd /system/vendor/bin/gpsd -c /system/vendor/etc/gps.xml
     class main
+    disabled
     user gps
     group system inet net_raw
     ioprio be 0

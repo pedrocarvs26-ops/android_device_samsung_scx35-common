@@ -7,5 +7,7 @@ LOCAL_SRC_FILES := libstlport.so
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_SUFFIX := .so
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+# 18.1 port: prebuilt DT_NEEDEDs must be declared.
+LOCAL_SHARED_LIBRARIES := libstdc++
 LOCAL_MODULE_PATH := $(TARGET_OUT)/lib
 include $(BUILD_PREBUILT)

@@ -27,19 +27,25 @@ PRODUCT_PACKAGES += \
 	audio_hw.xml \
 	audio_para \
 	audio_effects_vendor.conf \
-	audio_policy.conf \
+	audio_policy_configuration.xml \
 	codec_pga.xml \
 	tiny_hw.xml \
 	audio.primary.sc8830 \
 	libaudio-resampler
 
+# audio_policy_configuration.xml pulls these in with XInclude, so they have
+# to be installed next to it.
+PRODUCT_COPY_FILES += \
+	frameworks/av/services/audiopolicy/config/a2dp_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/a2dp_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usb_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
+	frameworks/av/services/audiopolicy/config/default_volume_tables.xml:$(TARGET_COPY_OUT_VENDOR)/etc/default_volume_tables.xml
+
 # Bluetooth
 PRODUCT_PACKAGES += \
 	bluetooth.default \
 	libbt-vendor
-
-PRODUCT_COPY_FILES += \
-	$(LOCAL_PATH)/system/etc/init/android.hardware.bluetooth@1.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/android.hardware.bluetooth@1.0-service.rc \
 
 # Codecs
 PRODUCT_PACKAGES += \
@@ -139,7 +145,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	persist.media.treble_omx=false
 
 # ART device props
+#
+# The JIT is off because its code cache wants memfd_create(), which the
+# 3.10 kernel does not implement; system_server takes SIGSEGV/SEGV_ACCERR
+# the first time it tries to write to a JIT region.
 PRODUCT_PROPERTY_OVERRIDES += \
+	dalvik.vm.usejit=false \
 	dalvik.vm.dex2oat-flags=--no-watch-dog \
 	dalvik.vm.image-dex2oat-filter=quicken \
 	dalvik.vm.dex2oat-filter=quicken \
@@ -151,7 +162,15 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	pm.dexopt.inactive=verify \
 	pm.dexopt.shared=quicken
 
+# Compile the boot image and system server ahead of time (18.1 port:
+# product vars cannot live in BoardConfig*.mk).
+PRODUCT_DEX_PREOPT_BOOT_FLAGS += --compiler-filter=speed
+PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed
+
 # HIDL (HAL Interface Definition Language)
+PRODUCT_PACKAGES += \
+	scx35-common.vintf
+
 include $(LOCAL_PATH)/hidl.mk
 
 # Performance
