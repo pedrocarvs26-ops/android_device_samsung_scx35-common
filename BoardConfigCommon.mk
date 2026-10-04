@@ -43,6 +43,11 @@ BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_USES_TINYALSA_AUDIO := true
 TARGET_TINY_ALSA_IGNORE_SILENCE_SIZE := true
 
+# Android 10 removed the legacy audio_policy.conf parser; AudioPolicyManager
+# fails to compile unless the XML one is selected.  Note that the build
+# system compares this against the literal 1, not against true.
+USE_XML_AUDIO_POLICY_CONF := 1
+
 # Platform
 TARGET_ARCH := arm
 TARGET_BOARD_PLATFORM := sc8830
@@ -107,6 +112,14 @@ WITH_DEXPREOPT := true
 WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := false
 
 # SELinux policy
+#
+# The pre-Treble HALs this platform still runs (legacy camera HAL1 inside
+# cameraserver, the radio device nodes audioserver and mediaserver open for
+# in-call audio, and wpa_supplicant's private ioctls) trip ten upstream
+# neverallow rules that cannot be satisfied without rewriting the vendor
+# blobs.  The board already boots permissive, so let the policy build.
+SELINUX_IGNORE_NEVERALLOWS := true
+
 BOARD_SEPOLICY_DIRS += device/samsung/scx35-common/sepolicy
 
 # System properties

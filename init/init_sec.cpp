@@ -296,7 +296,11 @@ void vendor_load_properties()
 		case T560:
 			/* gtelwifi */
 			property_override("ro.product.model", "SM-T560");
-			property_override("ro.product.device", "gtelwifi");
+			/* Both the T560 and the T561 are built from the gtel3g tree, and
+			 * ro.product.device has to agree with ro.product.system.device:
+			 * property_derive_build_fingerprint() and friends skip properties
+			 * that are already set, so "gtelwifi" would stick forever. */
+			property_override("ro.product.device", "gtel3g");
 			break;
 		case T561:
 			/* gtel3g */

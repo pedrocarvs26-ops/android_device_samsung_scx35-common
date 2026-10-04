@@ -1,4 +1,16 @@
-service mediacodec /vendor/bin/hw/android.hardware.media.omx@1.0-service
+# gtel3g: the stock name `mediacodec` collides with the Android 10
+# `media.codec` service (media_codec service in AOSP). Two init services cannot
+# share a name, so this one never starts: measured on the device as
+# "dumpsys media.codec -> Can't find service: media.codec", an absent
+# media.codec entry in `service list`, and zero video codecs in
+# `dumpsys media.player` (only stale handlers plus CCodecWatchdog).
+#
+# The consequence was that no OMX.sprd.*.decoder was ever registered even though
+# /vendor/etc/media_codecs.xml declares them, and video playback had no decoder at
+# all. Renaming the init service is enough: the VINTF fqname
+# (android.hardware.media.omx::IOmx/default) is what resolves the HAL, not this
+# process name.
+service vendor.media_omx /vendor/bin/hw/android.hardware.media.omx@1.0-service
     class main
     user mediacodec
     group audio camera drmrpc mediadrm

@@ -27,11 +27,20 @@ PRODUCT_PACKAGES += \
 	audio_hw.xml \
 	audio_para \
 	audio_effects_vendor.conf \
-	audio_policy.conf \
+	audio_policy_configuration.xml \
 	codec_pga.xml \
 	tiny_hw.xml \
 	audio.primary.sc8830 \
 	libaudio-resampler
+
+# audio_policy_configuration.xml pulls these in with XInclude, so they have
+# to be installed next to it.
+PRODUCT_COPY_FILES += \
+	frameworks/av/services/audiopolicy/config/a2dp_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/a2dp_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usb_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml \
+	frameworks/av/services/audiopolicy/config/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
+	frameworks/av/services/audiopolicy/config/default_volume_tables.xml:$(TARGET_COPY_OUT_VENDOR)/etc/default_volume_tables.xml
 
 # Bluetooth
 PRODUCT_PACKAGES += \
@@ -136,7 +145,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	persist.media.treble_omx=false
 
 # ART device props
+#
+# The JIT is off because its code cache wants memfd_create(), which the
+# 3.10 kernel does not implement; system_server takes SIGSEGV/SEGV_ACCERR
+# the first time it tries to write to a JIT region.
 PRODUCT_PROPERTY_OVERRIDES += \
+	dalvik.vm.usejit=false \
 	dalvik.vm.dex2oat-flags=--no-watch-dog \
 	dalvik.vm.image-dex2oat-filter=quicken \
 	dalvik.vm.dex2oat-filter=quicken \
