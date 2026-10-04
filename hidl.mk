@@ -21,7 +21,8 @@ PRODUCT_PACKAGES += \
 
 # GPS
 PRODUCT_PACKAGES += \
-	android.hardware.gnss@1.0-impl
+	android.hardware.gnss@1.0-impl \
+	android.hardware.gnss@1.0-service
 
 # Graphics
 PRODUCT_PACKAGES += \
@@ -31,6 +32,11 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.composer@2.1-service \
 	android.hardware.graphics.mapper@2.0-impl
 
+# Health
+PRODUCT_PACKAGES += \
+	android.hardware.health@2.1-service \
+	android.hardware.health@2.1-impl
+
 # Keymaster
 PRODUCT_PACKAGES += \
 	android.hardware.keymaster@3.0-service \
@@ -38,7 +44,8 @@ PRODUCT_PACKAGES += \
 
 # Lights
 PRODUCT_PACKAGES += \
-	android.hardware.light@2.0-impl
+	android.hardware.light@2.0-impl \
+	android.hardware.light@2.0-service
 
 # Memtrack
 PRODUCT_PACKAGES += \
