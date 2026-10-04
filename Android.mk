@@ -19,16 +19,4 @@ LOCAL_PATH := $(call my-dir)
 ifneq ($(filter grandprimeve3g coreprimeve3g core33g grandneove3g gtel3g,$(TARGET_DEVICE)),)
 include $(call all-subdir-makefiles,$(LOCAL_PATH))
 
-LOCAL_PATH := device/samsung/scx35-common
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := scx35-common.vintf
-LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE_CLASS := ETC
-LOCAL_PROPRIETARY_MODULE := true
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/vintf
-LOCAL_MODULE_FILENAME := scx35-common.vintf
-LOCAL_SRC_FILES := configs/manifest.common.xml
-LOCAL_VINTF_FRAGMENTS := configs/manifest.common.xml
-include $(BUILD_PREBUILT)
 endif
