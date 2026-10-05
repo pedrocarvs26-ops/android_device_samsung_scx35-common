@@ -179,7 +179,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Permissions
 PERMISSIONS_XML_FILES := \
-	frameworks/native/data/etc/handheld_core_hardware.xml \
 	frameworks/native/data/etc/android.hardware.bluetooth_le.xml \
 	frameworks/native/data/etc/android.hardware.location.gps.xml \
 	frameworks/native/data/etc/android.hardware.wifi.xml \
@@ -190,7 +189,13 @@ PERMISSIONS_XML_FILES := \
 	frameworks/native/data/etc/android.hardware.camera.autofocus.xml \
 	frameworks/native/data/etc/android.hardware.camera.front.xml \
 	frameworks/native/data/etc/android.software.midi.xml \
+	frameworks/native/data/etc/android.software.app_widgets.xml \
 	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml
+
+ifneq ($(PRODUCT_TYPE),go)
+PERMISSIONS_XML_FILES += \
+	frameworks/native/data/etc/handheld_core_hardware.xml
+endif
 
 PRODUCT_COPY_FILES += \
 	$(foreach f,$(PERMISSIONS_XML_FILES),$(f):$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/$(notdir $(f)))
@@ -199,8 +204,22 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.sys.sdcardfs=true
 
+# Inherit Android Go defaults
+ifeq ($(PRODUCT_TYPE),go)
+$(call inherit-product, build/make/target/product/go_defaults.mk)
+# Disable Scudo to use jemalloc (saves ~50-100MB RAM)
+PRODUCT_DISABLE_SCUDO := true
+PRODUCT_PROPERTY_OVERRIDES += \
+	dalvik.vm.heapstartsize=8m \
+	dalvik.vm.heapgrowthlimit=128m \
+	dalvik.vm.heapsize=256m \
+	dalvik.vm.heaptargetutilization=0.75 \
+	dalvik.vm.heapminfree=512k \
+	dalvik.vm.heapmaxfree=8m
+else
 # Dalvik heap config
 $(call inherit-product, frameworks/native/build/tablet-7in-hdpi-1024-dalvik-heap.mk)
+endif
 
 # Debug build configuration
 ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
@@ -216,7 +235,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.config.low_ram=true \
 	ro.statsd.enable=false
 
-# Keep ART footprint small without inheriting Android Go memory policy.
 PRODUCT_ALWAYS_PREOPT_EXTRACTED_APK := true
 PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD := false
 PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true

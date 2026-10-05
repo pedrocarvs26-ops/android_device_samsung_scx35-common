@@ -1,7 +1,13 @@
 
-# Graphics
+# Graphics & SurfaceFlinger Performance (Mali-400 / Android Go)
 ro.opengles.version=131072
 ro.sf.disable_triple_buffer=0
+persist.sys.sf.disable_blurs=1
+ro.surface_flinger.supports_background_blur=0
+ro.sf.blurs_are_expensive=1
+debug.sf.disable_backpressure=1
+debug.sf.luma_sampling=0
+debug.hwui.renderer=opengl
 
 # Wireless connectivity subsystem
 ro.modem.wcn.enable=1
