@@ -37,10 +37,9 @@
 /system/vendor/bin/ext_kill.sh      u:object_r:rild_exec:s0
 /system/vendor/bin/ext_symlink.sh   u:object_r:rild_exec:s0
 
-# Android 12 mudou o rotulo de /data/misc/radio para radio_core_data_file
-# (radio_data_file passou a ser /data/misc/sms). Sem isto o checkfc falha com
-# "Multiple different specifications for /data/misc/radio(/.*)?".
-/data/misc/radio(/.*)?       u:object_r:radio_core_data_file:s0
+# /data/misc/radio era radio_data_file e virou radio_core_data_file no A12, mas
+# o system/sepolicy/private ja declara o path. A linha daqui e' redundante e
+# fazia o checkfc reclamar ("Multiple same specifications"), entao saiu.
 
 # Block labeling
 /dev/block/mmcblk0p1         u:object_r:radio_block_device:s0
