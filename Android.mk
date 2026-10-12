@@ -16,6 +16,14 @@
 
 LOCAL_PATH := $(call my-dir)
 
+# Os blobs sc8830 (camera, gps, ril, omx) foram compilados com gnustl e pedem
+# libstlport/libstdc++ em DT_NEEDED. O Android.mk do stlport so e' processado se
+# alguem o incluir, e o gtel3g declara libstlport no PRODUCT_PACKAGES sem que
+# isso aconteca: o modulo ficava undefined e o build parava em
+# "depends on undefined module libstlport".
+include $(BUILD_TOP)/external/stlport/Android.mk
+
+
 ifneq ($(filter grandprimeve3g coreprimeve3g core33g grandneove3g gtel3g,$(TARGET_DEVICE)),)
 include $(call all-subdir-makefiles,$(LOCAL_PATH))
 

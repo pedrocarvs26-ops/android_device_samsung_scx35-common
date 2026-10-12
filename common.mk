@@ -156,16 +156,18 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	dalvik.vm.dex2oat-filter=quicken \
 	pm.dexopt.first-boot=quicken \
 	pm.dexopt.boot=verify \
-	pm.dexopt.install=speed-profile \
-	pm.dexopt.bg-dexopt=speed-profile \
+	pm.dexopt.install=verify \
+	pm.dexopt.bg-dexopt=verify \
 	pm.dexopt.ab-ota=quicken \
 	pm.dexopt.inactive=verify \
 	pm.dexopt.shared=quicken
 
 # Compile the boot image and system server ahead of time (18.1 port:
 # product vars cannot live in BoardConfig*.mk).
-PRODUCT_DEX_PREOPT_BOOT_FLAGS += --compiler-filter=speed
-PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed
+# speed-profile foi removido no Android 12: o dex2oat nao aceita a flag e o
+# dexpreopt falha com "Unknown argument: speed-profile". verify e' o filtro de
+# A12 e nao exige compilacao antecipada.
+PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := verify
 
 # HIDL (HAL Interface Definition Language)
 PRODUCT_PACKAGES += \
