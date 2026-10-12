@@ -150,7 +150,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # 3.10 kernel does not implement; system_server takes SIGSEGV/SEGV_ACCERR
 # the first time it tries to write to a JIT region.
 PRODUCT_PROPERTY_OVERRIDES += \
-	dalvik.vm.usejit=false \
+	# dalvik.vm.usejit=false nao entra: o runtime_libart.mk do A12 ja define
+	# usejit=true e o build.prop rejeita sysprop duplicado.
 	dalvik.vm.dex2oat-flags=--no-watch-dog \
 	dalvik.vm.image-dex2oat-filter=quicken \
 	dalvik.vm.dex2oat-filter=quicken \
@@ -167,7 +168,17 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # speed-profile foi removido no Android 12: o dex2oat nao aceita a flag e o
 # dexpreopt falha com "Unknown argument: speed-profile". verify e' o filtro de
 # A12 e nao exige compilacao antecipada.
-PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := verify
+# O dex2oatd do Android 12 (usado no javalib/dexpreopt) nao aceita o token
+# "speed" como argumento solto; ele sai do DefaultCompilerFilter do go_defaults.
+# quicken e' o equivalente low-RAM valido.
+PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := quicken
+# O boot-image-profile do go_defaults faz o dexpreopt do boot art usar o filtro
+# speed-profile, que o dex2oatd do A12 nao aceita. Esvaziamos a lista de apps
+# para o dexpreopt cair no DefaultCompilerFilter (quicken).
+PRODUCT_DEX_PREOPT_BOOT_IMAGE_PROFILE_LOCATION :=
+PRODUCT_DEXPREOPT_SPEED_APPS :=
+PRODUCT_DEXPREOPT_SYSTEM_SERVER_APPS :=
+PRODUCT_SYSTEM_SERVER_COMPILER_FILTER :=
 
 # HIDL (HAL Interface Definition Language)
 PRODUCT_PACKAGES += \
@@ -209,6 +220,17 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Inherit Android Go defaults
 ifeq ($(PRODUCT_TYPE),go)
 $(call inherit-product, build/make/target/product/go_defaults.mk)
+# O go_defaults.mk do Android 12 ainda usa os filtros speed-profile, que o
+# dex2oat de A12 nao aceita ("Unknown argument: speed-profile") e trava o
+# dexpreopt do javalib. Verify nao compila nada.
+PRODUCT_PROPERTY_OVERRIDES += \
+	pm.dexopt.install=verify \
+	pm.dexopt.install-bulk=verify \
+	pm.dexopt.bg-dexopt=verify \
+	pm.dexopt.ab-ota=verify \
+	pm.dexopt.first-boot=verify \
+	pm.dexopt.boot=verify \
+	dalvik.vm.dex2oat-filter=verify
 # Disable Scudo to use jemalloc (saves ~50-100MB RAM)
 PRODUCT_DISABLE_SCUDO := true
 PRODUCT_PROPERTY_OVERRIDES += \
