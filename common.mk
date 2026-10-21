@@ -149,17 +149,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # The JIT is off because its code cache wants memfd_create(), which the
 # 3.10 kernel does not implement; system_server takes SIGSEGV/SEGV_ACCERR
 # the first time it tries to write to a JIT region.
+# dalvik.vm.usejit=false is set in runtime_libart.mk for kernel 3.10 compatibility
 PRODUCT_PROPERTY_OVERRIDES += \
-	# dalvik.vm.usejit=false nao entra: o runtime_libart.mk do A12 ja define
-	# usejit=true e o build.prop rejeita sysprop duplicado.
+	ro.kernel.ebpf.supported=false \
+	ro.product.first_api_level=19 \
 	dalvik.vm.dex2oat-flags=--no-watch-dog \
 	dalvik.vm.image-dex2oat-filter=quicken \
-	dalvik.vm.dex2oat-filter=quicken \
-	pm.dexopt.first-boot=quicken \
-	pm.dexopt.boot=verify \
-	pm.dexopt.install=verify \
-	pm.dexopt.bg-dexopt=verify \
-	pm.dexopt.ab-ota=quicken \
 	pm.dexopt.inactive=verify \
 	pm.dexopt.shared=quicken
 
@@ -181,9 +176,6 @@ PRODUCT_DEXPREOPT_SYSTEM_SERVER_APPS :=
 PRODUCT_SYSTEM_SERVER_COMPILER_FILTER :=
 
 # HIDL (HAL Interface Definition Language)
-PRODUCT_PACKAGES += \
-	scx35-common.vintf
-
 include $(LOCAL_PATH)/hidl.mk
 
 # Performance
@@ -224,13 +216,17 @@ $(call inherit-product, build/make/target/product/go_defaults.mk)
 # dex2oat de A12 nao aceita ("Unknown argument: speed-profile") e trava o
 # dexpreopt do javalib. Verify nao compila nada.
 PRODUCT_PROPERTY_OVERRIDES += \
-	pm.dexopt.install=verify \
-	pm.dexopt.install-bulk=verify \
-	pm.dexopt.bg-dexopt=verify \
-	pm.dexopt.ab-ota=verify \
-	pm.dexopt.first-boot=verify \
+	dalvik.vm.usejit=true \
+	debug.renderengine.backend=gles \
+	ro.surface_flinger.supports_background_blur=0 \
+	service.sf.prime_shader_cache=0 \
+	pm.dexopt.install=speed \
+	pm.dexopt.install-bulk=quicken \
+	pm.dexopt.bg-dexopt=speed \
+	pm.dexopt.ab-ota=quicken \
+	pm.dexopt.first-boot=quicken \
 	pm.dexopt.boot=verify \
-	dalvik.vm.dex2oat-filter=verify
+	dalvik.vm.dex2oat-filter=speed
 # Disable Scudo to use jemalloc (saves ~50-100MB RAM)
 PRODUCT_DISABLE_SCUDO := true
 PRODUCT_PROPERTY_OVERRIDES += \

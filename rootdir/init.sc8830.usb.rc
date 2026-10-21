@@ -14,6 +14,7 @@ on fs
     mkdir /dev/usb-ffs 0770 shell shell
     mkdir /dev/usb-ffs/adb 0770 shell shell
     mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
+    write /sys/class/android_usb/android0/enable 0
     write /sys/class/android_usb/android0/f_ffs/aliases adb
     mkdir /dev/bus 0755 root root
     mkdir /dev/bus/usb 0755 root root
@@ -21,7 +22,15 @@ on fs
 on init
     # Kernel 3.10 has no FunctionFS AIO support.
     setprop sys.usb.ffs.aio_compat true
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/f_ffs/aliases adb
     write /sys/class/android_usb/android0/iSerial ${ro.serialno}
+
+on property:persist.sys.usb.config=none
+    setprop persist.sys.usb.config mtp,adb
+
+on property:persist.sys.usb.config=adb
+    setprop persist.sys.usb.config mtp,adb
 
 on property:sys.usb.config=mtp
     write /sys/class/android_usb/android0/enable 0
