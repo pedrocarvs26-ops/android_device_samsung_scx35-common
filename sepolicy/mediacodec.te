@@ -1,2 +1,5 @@
 set_prop(mediacodec, media_prop)
+
+# The SPRD OMX components drive the VSP and the JPEG codec directly.
 allow mediacodec audio_device:chr_file { read write open ioctl };
+allow mediacodec video_device:chr_file rw_file_perms;

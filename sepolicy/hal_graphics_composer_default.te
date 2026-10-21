@@ -1,3 +1,7 @@
 # Legacy SPRD HWC1 uses GraphicBufferAllocator internally.
 # Allow binderized composer HAL to use graphics allocator HAL.
 hal_client_domain(hal_graphics_composer_default, hal_graphics_allocator)
+
+# Legacy SPRD HWC1 can fall back to the scaler and the rotator when the
+# GSP cannot compose a layer set.
+allow hal_graphics_composer_default video_device:chr_file rw_file_perms;

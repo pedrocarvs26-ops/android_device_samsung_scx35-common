@@ -7,6 +7,5 @@ type rfkill_device, dev_type;
 type slog_device, dev_type;
 type spipe_device, dev_type;
 type media_device, dev_type;
-type bluetooth_serial_device, dev_type;
 type gadget_serial_device, dev_type;
 type gps_serial_device, dev_type;

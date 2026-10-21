@@ -168,9 +168,6 @@ PRODUCT_DEX_PREOPT_BOOT_FLAGS += --compiler-filter=speed
 PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed
 
 # HIDL (HAL Interface Definition Language)
-PRODUCT_PACKAGES += \
-	scx35-common.vintf
-
 include $(LOCAL_PATH)/hidl.mk
 
 # Performance
