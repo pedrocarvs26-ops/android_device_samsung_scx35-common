@@ -97,6 +97,7 @@ service charger /sbin/sprd_charger
     seclabel u:r:healthd:s0
 
 on post-fs
+    rm -rf /dev/stune
     # Belt and braces for the core_pattern trap described in early-init: if
     # anything ever replaces the /dev/null character device with a regular
     # file again, at least keep it readable/writable by everyone so bionic's
