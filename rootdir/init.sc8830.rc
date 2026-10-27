@@ -85,6 +85,7 @@ service charger /system/bin/sprd_charger
     seclabel u:r:charger:s0
 
 on post-fs
+    rm -rf /dev/stune
     restorecon /dev/null
     chmod 0666 /dev/null
     # Legacy SPRD composer asks for binderized allocator synchronously.
